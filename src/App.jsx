@@ -38,9 +38,9 @@ function App() {
     setCurrentDate(getFormattedDate(today));
     setModalDate(getDateKey(today)); // Default modal date to today
 
-    // Load today's data
-    const key = getDateKey(today);
-    loadDataForKey(key);
+    // Load today's data - REMOVED to keep form empty for submission
+    // const key = getDateKey(today);
+    // loadDataForKey(key);
   }, []);
 
   const loadDataForKey = async (key) => {
@@ -72,8 +72,12 @@ function App() {
     const key = getDateKey(today);
 
     try {
-      await api.saveDay(key, notes, spentList);
+      await api.saveDay(key, notes, spentList, 'append');
       setIsSaved(true);
+
+      // Clear form after save
+      setNotes('');
+      setSpentList([]);
 
       // Revert success message after 2 seconds
       setTimeout(() => {
@@ -121,6 +125,28 @@ function App() {
       } catch (error) {
         console.error('Error deleting data:', error);
         alert('Failed to delete data');
+      }
+    }
+  };
+
+  const handleHistoryItemDelete = async (index) => {
+    if (!historyData || !modalDate) return;
+
+    if (window.confirm('Delete this item?')) {
+      const newSpent = [...historyData.spentMoney];
+      newSpent.splice(index, 1);
+
+      try {
+        await api.saveDay(modalDate, historyData.notes, newSpent, 'overwrite');
+
+        // Update local state
+        setHistoryData({
+          ...historyData,
+          spentMoney: newSpent
+        });
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        alert('Failed to delete item');
       }
     }
   };
@@ -191,6 +217,7 @@ function App() {
         onDateChange={(date) => setModalDate(date)}
         onLoadHistory={() => loadHistoryDataForDate(modalDate)}
         onDeleteHistory={handleDeleteHistory}
+        onDeleteItem={handleHistoryItemDelete}
         historyData={historyData}
         minDate={minDate}
         maxDate={maxDate}

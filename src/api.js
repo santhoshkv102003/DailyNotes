@@ -9,13 +9,13 @@ export const api = {
     },
 
     // Save (Upsert) entry
-    saveDay: async (date, notes, spentMoney) => {
+    saveDay: async (date, notes, spentMoney, mode = 'overwrite') => {
         const response = await fetch(`${API_BASE}/days`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ date, notes, spentMoney })
+            body: JSON.stringify({ date, notes, spentMoney, mode })
         });
         if (!response.ok) throw new Error('Failed to save data');
         return response.json();

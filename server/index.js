@@ -36,13 +36,56 @@ app.get('/api/days/:date', async (req, res) => {
 // POST /api/days - Create or Update entry
 app.post('/api/days', async (req, res) => {
     try {
-        const { date, notes, spentMoney } = req.body;
-        console.log('Saving entry for date:', date); // Debug log
+        const { date, notes, spentMoney, mode } = req.body;
+        console.log('Saving entry for date:', date, 'Mode:', mode); // Debug log
+
+        let updateOperation;
+
+        if (mode === 'append') {
+            // Append mode: Push to arrays/concat strings
+            // Note: For notes, we might want to append with a newline if it's not empty
+            // But MongoDB $concat is for aggregation. For simple update with push, we can just push spentMoney.
+            // For notes, it's trickier to "append" atomically without fetching first or using specific operators.
+            // A simple approach for notes if we want to append: fetch -> concat -> save.
+            // OR checks if we can use an aggregation pipeline in update (Mongoose 5+ supports it).
+            // Let's stick to a simpler fetch-modify-save or standard logic for now.
+
+            // Standard upsert doesn't "append" string fields easily.
+            // Let's try finding first to see if we need to append.
+            const existingEntry = await DayEntry.findOne({ date });
+
+            if (existingEntry) {
+                const newNotes = existingEntry.notes
+                    ? (notes ? existingEntry.notes + '\n' + notes : existingEntry.notes)
+                    : notes;
+
+                // Concat arrays
+                const newSpentMoney = existingEntry.spentMoney.concat(spentMoney || []);
+
+                updateOperation = {
+                    $set: {
+                        notes: newNotes,
+                        spentMoney: newSpentMoney,
+                        lastModified: Date.now()
+                    }
+                };
+            } else {
+                // New entry, just set it
+                updateOperation = {
+                    $set: { notes, spentMoney, lastModified: Date.now() }
+                };
+            }
+        } else {
+            // Default overwrite behavior
+            updateOperation = {
+                $set: { notes, spentMoney, lastModified: Date.now() }
+            };
+        }
 
         // Upsert: Update if exists, Insert if not
         const entry = await DayEntry.findOneAndUpdate(
             { date },
-            { $set: { notes, spentMoney, lastModified: Date.now() } },
+            updateOperation,
             { new: true, upsert: true }
         );
 

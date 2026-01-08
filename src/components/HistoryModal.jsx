@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, historyData, selectedDate, onDateChange, minDate, maxDate }) => {
+const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, onDeleteItem, historyData, selectedDate, onDateChange, minDate, maxDate }) => {
     if (!isOpen) return null;
 
 
@@ -11,6 +11,12 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, history
 
     // State for animation direction
     const [animationClass, setAnimationClass] = useState('');
+    const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+
+    // Reset selection when date changes
+    React.useEffect(() => {
+        setSelectedItemIndex(null);
+    }, [selectedDate, historyData]);
 
     // Helper to change date by offset
     const changeDateBy = (offset) => {
@@ -102,10 +108,20 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, history
         return (
             <>
                 {spentList.map((item, idx) => (
-                    <div key={idx} style={{ padding: '10px', borderBottom: '1px solid #e0e0e0' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                            <span>• {item.description}</span>
+                    <div
+                        key={idx}
+                        style={{
+                            padding: '10px',
+                            borderBottom: '1px solid #e0e0e0',
+                            backgroundColor: idx === selectedItemIndex ? '#e6f7ff' : 'transparent',
+                            cursor: 'pointer',
+                            borderRadius: '4px',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onClick={() => setSelectedItemIndex(idx === selectedItemIndex ? null : idx)}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span><strong>{idx + 1}.</strong> {item.description}</span>
                             <strong style={{ color: '#667eea' }}>₹{item.amount.toFixed(2)}</strong>
                         </div>
                     </div>
@@ -177,9 +193,19 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, history
                     </div>
                 </div>
 
-                <div className="modal-actions">
-                    {/* Apply button removed as data auto-loads */}
-                    <button className="delete-btn" onClick={handleDelete}>Delete Data</button>
+                <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                    {selectedItemIndex !== null && (
+                        <button
+                            className="delete-btn"
+                            onClick={() => onDeleteItem(selectedItemIndex)}
+                            style={{
+                                backgroundColor: '#e12424ff'
+                            }}
+                        >
+                            Remove Item
+                        </button>
+                    )}
+                    <button className="delete-btn" onClick={handleDelete} style={{ backgroundColor: '#ac0f0fff' }}>Clear All</button>
                 </div>
             </div>
         </div>
