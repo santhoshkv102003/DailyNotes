@@ -468,8 +468,52 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .date-display {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+
     .main-content {
         grid-template-columns: 1fr;
+        padding: 15px;
+        gap: 20px;
+    }
+
+    .spent-money-section,
+    .notes-section {
+        padding: 15px;
+    }
+
+    .add-item {
+        flex-direction: column;
+    }
+
+    .add-item button {
+        width: 100%;
+    }
+
+    .buttons-section {
+        padding: 15px;
     }
 
     .previous-info {
@@ -483,6 +527,8 @@ body {
         width: 100%;
         min-width: 100%;
         margin-bottom: 15px;
+        transform: none !important;
+        /* Override desktop hover transforms */
     }
 
     .history-btn {
@@ -493,7 +539,17 @@ body {
         min-width: 100%;
     }
 
-    /* Mobile Navigation Tweaks */
+    /* Modal Mobile Fixes */
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        margin: 10px;
+        max-height: 90vh;
+        /* Ensure it fits on small screens */
+        overflow-y: auto;
+        /* Scrollable if content is tall */
+    }
+
     .date-navigation {
         gap: 5px;
     }
