@@ -95,7 +95,7 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, onDelet
         if (lines.length === 0) return <p>No notes for this date</p>;
 
         return lines.map((line, idx) => (
-            <p key={idx} style={{ margin: '8px 0', paddingLeft: '10px' }}>• {line.trim()}</p>
+            <p key={idx} style={{ margin: '8px 0', paddingLeft: '10px' }}>{line.trim()}</p>
         ));
     };
 
