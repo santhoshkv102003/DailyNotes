@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Header from './components/Header';
 import SpentMoneySection from './components/SpentMoneySection';
 import NotesSection from './components/NotesSection';
 import ActionButtons from './components/ActionButtons';
 import HistoryModal from './components/HistoryModal';
+import Login from './components/Login';
+import Register from './components/Register';
 import { api } from './api';
+import { AuthProvider, AuthContext } from './context/AuthContext';
 
-function App() {
+function AuthenticatedApp() {
+  const { user, logout } = useContext(AuthContext);
   const [currentDate, setCurrentDate] = useState('');
   const [spentList, setSpentList] = useState([]);
   const [notes, setNotes] = useState('');
@@ -37,10 +41,6 @@ function App() {
     const today = new Date();
     setCurrentDate(getFormattedDate(today));
     setModalDate(getDateKey(today)); // Default modal date to today
-
-    // Load today's data - REMOVED to keep form empty for submission
-    // const key = getDateKey(today);
-    // loadDataForKey(key);
   }, []);
 
   const loadDataForKey = async (key) => {
@@ -185,6 +185,18 @@ function App() {
 
   return (
     <div className="container">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 30px 0 30px', color: '#666' }}>
+        <span>Welcome, <strong>{user?.username}</strong></span>
+        <button onClick={logout} style={{
+          background: 'none',
+          border: 'none',
+          color: '#667eea',
+          cursor: 'pointer',
+          fontWeight: '600',
+          textDecoration: 'underline'
+        }}>Logout</button>
+      </div>
+
       <Header date={currentDate} />
 
       <div className="main-content">
@@ -226,4 +238,28 @@ function App() {
   );
 }
 
-export default App;
+function AppContent() {
+  const { user, loading } = useContext(AuthContext);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>Loading...</div>;
+  }
+
+  if (!user) {
+    return isRegistering
+      ? <Register onSwitch={() => setIsRegistering(false)} />
+      : <Login onSwitch={() => setIsRegistering(true)} />;
+  }
+
+  return <AuthenticatedApp />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+export default App; // Ensure this is exported correctly

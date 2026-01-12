@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const DayEntry = require('./models/DayEntry');
 
+const auth = require('./middleware/auth');
+const authRoutes = require('./routes/auth');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -17,12 +20,13 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error('MongoDB Connection Error:', err));
 
 // Routes
+app.use('/api/auth', authRoutes);
 
 // GET /api/days/:date - Fetch entry for a specific date
-app.get('/api/days/:date', async (req, res) => {
+app.get('/api/days/:date', auth, async (req, res) => {
     try {
         const { date } = req.params;
-        const entry = await DayEntry.findOne({ date });
+        const entry = await DayEntry.findOne({ date, userId: req.user.userId });
         if (!entry) {
             return res.json({ notes: '', spentMoney: [] });
         }
@@ -34,25 +38,15 @@ app.get('/api/days/:date', async (req, res) => {
 });
 
 // POST /api/days - Create or Update entry
-app.post('/api/days', async (req, res) => {
+app.post('/api/days', auth, async (req, res) => {
     try {
         const { date, notes, spentMoney, mode } = req.body;
-        console.log('Saving entry for date:', date, 'Mode:', mode); // Debug log
+        console.log('Saving entry for date:', date, 'Mode:', mode, 'User:', req.user.userId); // Debug log
 
         let updateOperation;
 
         if (mode === 'append') {
-            // Append mode: Push to arrays/concat strings
-            // Note: For notes, we might want to append with a newline if it's not empty
-            // But MongoDB $concat is for aggregation. For simple update with push, we can just push spentMoney.
-            // For notes, it's trickier to "append" atomically without fetching first or using specific operators.
-            // A simple approach for notes if we want to append: fetch -> concat -> save.
-            // OR checks if we can use an aggregation pipeline in update (Mongoose 5+ supports it).
-            // Let's stick to a simpler fetch-modify-save or standard logic for now.
-
-            // Standard upsert doesn't "append" string fields easily.
-            // Let's try finding first to see if we need to append.
-            const existingEntry = await DayEntry.findOne({ date });
+            const existingEntry = await DayEntry.findOne({ date, userId: req.user.userId });
 
             if (existingEntry) {
                 const newNotes = existingEntry.notes
@@ -84,7 +78,7 @@ app.post('/api/days', async (req, res) => {
 
         // Upsert: Update if exists, Insert if not
         const entry = await DayEntry.findOneAndUpdate(
-            { date },
+            { date, userId: req.user.userId },
             updateOperation,
             { new: true, upsert: true }
         );
@@ -97,10 +91,10 @@ app.post('/api/days', async (req, res) => {
 });
 
 // DELETE /api/days/:date - Delete entry
-app.delete('/api/days/:date', async (req, res) => {
+app.delete('/api/days/:date', auth, async (req, res) => {
     try {
         const { date } = req.params;
-        await DayEntry.findOneAndDelete({ date });
+        await DayEntry.findOneAndDelete({ date, userId: req.user.userId });
         res.json({ message: 'Entry deleted' });
     } catch (err) {
         console.error('Error in DELETE /api/days/:date:', err);
@@ -109,10 +103,10 @@ app.delete('/api/days/:date', async (req, res) => {
 });
 
 // GET /api/days/range/all - Get all valid dates (for validation/navigation limits)
-app.get('/api/days/range/all', async (req, res) => {
+app.get('/api/days/range/all', auth, async (req, res) => {
     try {
         // Return only dates to keep payload small
-        const days = await DayEntry.find({}, 'date').sort({ date: 1 });
+        const days = await DayEntry.find({ userId: req.user.userId }, 'date').sort({ date: 1 });
         const dates = days.map(d => d.date);
         res.json(dates);
     } catch (err) {
