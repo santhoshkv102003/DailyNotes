@@ -185,16 +185,9 @@ function AuthenticatedApp() {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 30px 0 30px', color: '#666' }}>
-        <span>Welcome, <strong>{user?.username}</strong></span>
-        <button onClick={logout} style={{
-          background: 'none',
-          border: 'none',
-          color: '#667eea',
-          cursor: 'pointer',
-          fontWeight: '600',
-          textDecoration: 'underline'
-        }}>Logout</button>
+      <div className="welcome-bar">
+        <span>Welcome back, <strong>{user?.username}</strong></span>
+        <button onClick={logout} className="logout-btn">Logout</button>
       </div>
 
       <Header date={currentDate} />
@@ -221,7 +214,6 @@ function AuthenticatedApp() {
         onHistory={handleHistoryOpen}
         isSaved={isSaved}
       />
-
       <HistoryModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -243,7 +235,12 @@ function AppContent() {
   const [isRegistering, setIsRegistering] = useState(false);
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>Loading...</div>;
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <span>Loading...</span>
+      </div>
+    );
   }
 
   if (!user) {

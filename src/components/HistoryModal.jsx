@@ -113,7 +113,7 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, onDelet
                         style={{
                             padding: '10px',
                             borderBottom: '1px solid #e0e0e0',
-                            backgroundColor: idx === selectedItemIndex ? '#e6f7ff' : 'transparent',
+                            backgroundColor: idx === selectedItemIndex ? 'rgba(124, 106, 247, 0.15)' : 'transparent',
                             cursor: 'pointer',
                             borderRadius: '4px',
                             transition: 'background-color 0.2s'
@@ -122,11 +122,11 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, onDelet
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span><strong>{idx + 1}.</strong> {item.description}</span>
-                            <strong style={{ color: '#667eea' }}>₹{item.amount.toFixed(2)}</strong>
+                            <strong style={{ color: '#38d9c0' }}>₹{item.amount.toFixed(2)}</strong>
                         </div>
                     </div>
                 ))}
-                <div style={{ padding: '10px', marginTop: '10px', borderTop: '2px solid #667eea' }}>
+                <div style={{ padding: '10px', marginTop: '10px', borderTop: '2px solid #7c6af7', color: '#38d9c0' }}>
                     <strong>Total: ₹{total.toFixed(2)}</strong>
                 </div>
             </>

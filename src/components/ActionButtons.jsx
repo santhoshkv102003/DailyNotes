@@ -6,7 +6,7 @@ const ActionButtons = ({ onSave, onHistory, isSaved }) => {
             <button
                 className="save-btn"
                 onClick={onSave}
-                style={isSaved ? { background: '#4CAF50' } : {}}
+                style={isSaved ? { background: 'linear-gradient(135deg, #34d399, #2bbfa8)' } : {}}
             >
                 {isSaved ? '✓ Saved!' : 'SAVE'}
             </button>
