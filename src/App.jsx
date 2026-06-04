@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import SpentMoneySection from './components/SpentMoneySection';
 import NotesSection from './components/NotesSection';
@@ -7,13 +7,9 @@ import HistoryModal from './components/HistoryModal';
 import AnalyticsModal from './components/AnalyticsModal';
 import SearchModal from './components/SearchModal';
 import AIChatSidebar from './components/AIChatSidebar';
-import Login from './components/Login';
-import Register from './components/Register';
 import { api } from './api';
-import { AuthProvider, AuthContext } from './context/AuthContext';
 
-function AuthenticatedApp() {
-  const { user, logout } = useContext(AuthContext);
+function App() {
   const [currentDate, setCurrentDate] = useState('');
   const [spentList, setSpentList] = useState([]);
   const [notes, setNotes] = useState('');
@@ -29,7 +25,6 @@ function AuthenticatedApp() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
-  // Helper to format date like "Wednesday, September 10, 2025"
   const getFormattedDate = (dateObj) => {
     return dateObj.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -39,29 +34,15 @@ function AuthenticatedApp() {
     });
   };
 
-  // Helper to get YYYY-MM-DD for API keys
   const getDateKey = (dateObj) => {
     return dateObj.toISOString().split('T')[0];
   };
 
-  // Initialize
   useEffect(() => {
     const today = new Date();
     setCurrentDate(getFormattedDate(today));
-    setModalDate(getDateKey(today)); // Default modal date to today
+    setModalDate(getDateKey(today));
   }, []);
-
-  const loadDataForKey = async (key) => {
-    try {
-      const data = await api.getDay(key);
-      setNotes(data.notes || '');
-      setSpentList(data.spentMoney || []);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setNotes('');
-      setSpentList([]);
-    }
-  };
 
   const handleAddItem = (item) => {
     setSpentList([...spentList, item]);
@@ -78,29 +59,20 @@ function AuthenticatedApp() {
   const handleSave = async () => {
     const today = new Date();
     const key = getDateKey(today);
-
     try {
       await api.saveDay(key, notes, spentList, 'append');
       setIsSaved(true);
-
-      // Clear form after save
       setNotes('');
       setSpentList([]);
-
-      // Revert success message after 2 seconds
-      setTimeout(() => {
-        setIsSaved(false);
-      }, 2000);
+      setTimeout(() => setIsSaved(false), 2000);
     } catch (error) {
       console.error('Error saving data:', error);
       alert('Failed to save data!');
     }
   };
 
-  // Modal Handlers
   const handleHistoryOpen = () => {
     setIsModalOpen(true);
-    // Auto-load currently selected modal date data
     loadHistoryDataForDate(modalDate);
   };
 
@@ -117,13 +89,10 @@ function AuthenticatedApp() {
 
   const handleDeleteHistory = async () => {
     if (!modalDate) return;
-
     if (window.confirm('Are you sure you want to delete the data for this date?')) {
       try {
         await api.deleteDay(modalDate);
         setHistoryData(null);
-
-        // If deleting today's data, also clear main view
         const todayKey = getDateKey(new Date());
         if (modalDate === todayKey) {
           setNotes('');
@@ -139,19 +108,12 @@ function AuthenticatedApp() {
 
   const handleHistoryItemDelete = async (index) => {
     if (!historyData || !modalDate) return;
-
     if (window.confirm('Delete this item?')) {
       const newSpent = [...historyData.spentMoney];
       newSpent.splice(index, 1);
-
       try {
         await api.saveDay(modalDate, historyData.notes, newSpent, 'overwrite');
-
-        // Update local state
-        setHistoryData({
-          ...historyData,
-          spentMoney: newSpent
-        });
+        setHistoryData({ ...historyData, spentMoney: newSpent });
       } catch (error) {
         console.error('Error deleting item:', error);
         alert('Failed to delete item');
@@ -159,37 +121,24 @@ function AuthenticatedApp() {
     }
   };
 
-  // Create min/max dates
   const [minDate, setMinDate] = useState('');
   const maxDate = getDateKey(new Date());
 
-  // Find earliest date via API
   useEffect(() => {
     const fetchDates = async () => {
       try {
         const dates = await api.getAllDates();
-        if (dates && dates.length > 0) {
-          setMinDate(dates[0]); // Dates are sorted from API
-        } else {
-          setMinDate(getDateKey(new Date()));
-        }
+        setMinDate(dates && dates.length > 0 ? dates[0] : getDateKey(new Date()));
       } catch (error) {
         console.error('Error fetching dates:', error);
       }
     };
-
-    if (isModalOpen) {
-      fetchDates();
-    }
+    if (isModalOpen) fetchDates();
   }, [isModalOpen]);
 
-  // Auto-load history when modalDate changes, if modal is open
   useEffect(() => {
-    if (isModalOpen && modalDate) {
-      loadHistoryDataForDate(modalDate);
-    }
+    if (isModalOpen && modalDate) loadHistoryDataForDate(modalDate);
   }, [modalDate, isModalOpen]);
-
 
   return (
     <div className="container">
@@ -203,7 +152,6 @@ function AuthenticatedApp() {
             onDeleteItem={handleDeleteItem}
           />
         </div>
-
         <div className="right-section">
           <NotesSection
             notes={notes}
@@ -219,9 +167,8 @@ function AuthenticatedApp() {
         onAnalytics={() => setIsAnalyticsOpen(true)}
         onSearch={() => setIsSearchOpen(true)}
         onAIChat={() => setIsAIChatOpen(true)}
-        onLogout={logout}
-        username={user?.username}
       />
+
       <HistoryModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -234,52 +181,11 @@ function AuthenticatedApp() {
         minDate={minDate}
         maxDate={maxDate}
       />
-
-      <AnalyticsModal
-        isOpen={isAnalyticsOpen}
-        onClose={() => setIsAnalyticsOpen(false)}
-      />
-
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
-
-      <AIChatSidebar
-        isOpen={isAIChatOpen}
-        onClose={() => setIsAIChatOpen(false)}
-      />
+      <AnalyticsModal isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <AIChatSidebar isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
     </div>
   );
 }
 
-function AppContent() {
-  const { user, loading } = useContext(AuthContext);
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="loading-spinner"></div>
-        <span>Loading...</span>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return isRegistering
-      ? <Register onSwitch={() => setIsRegistering(false)} />
-      : <Login onSwitch={() => setIsRegistering(true)} />;
-  }
-
-  return <AuthenticatedApp />;
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
-export default App; // Ensure this is exported correctly
+export default App;

@@ -2,11 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Groq = require('groq-sdk');
 const DayEntry = require('../models/DayEntry');
-const auth = require('../middleware/auth');
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Helper: single call to Groq
 const ask = async (prompt, systemPrompt = 'You are a helpful assistant.') => {
     const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
@@ -21,16 +19,14 @@ const ask = async (prompt, systemPrompt = 'You are a helpful assistant.') => {
 };
 
 // POST /api/ai/categorize
-router.post('/categorize', auth, async (req, res) => {
+router.post('/categorize', async (req, res) => {
     try {
         const { description } = req.body;
         if (!description) return res.json({ category: 'Other' });
-
         const text = await ask(
             `Categorize this expense: "${description}"\n\nReply with ONLY one word from: Food, Groceries, Transport, Clothing, Entertainment, Health, Education, Utilities, Shopping, Travel, Other`,
             'You are an expense categorizer. Reply with only the category name, nothing else.'
         );
-
         const valid = ['Food','Groceries','Transport','Clothing','Entertainment','Health','Education','Utilities','Shopping','Travel','Other'];
         const category = valid.find(c => text.toLowerCase().includes(c.toLowerCase())) || 'Other';
         res.json({ category });
@@ -41,16 +37,14 @@ router.post('/categorize', auth, async (req, res) => {
 });
 
 // POST /api/ai/fix-grammar
-router.post('/fix-grammar', auth, async (req, res) => {
+router.post('/fix-grammar', async (req, res) => {
     try {
         const { text } = req.body;
         if (!text || !text.trim()) return res.json({ fixed: text });
-
         const fixed = await ask(
             `Fix the grammar, spelling and punctuation of this text. Keep the same meaning, tone and structure. Return ONLY the corrected text, nothing else:\n\n${text}`,
             'You are a grammar correction assistant. Return only the corrected text, no explanations.'
         );
-
         res.json({ fixed: fixed.replace(/^"|"$/g, '') });
     } catch (err) {
         console.error('Grammar error:', err.message);
@@ -59,12 +53,11 @@ router.post('/fix-grammar', auth, async (req, res) => {
 });
 
 // POST /api/ai/search
-router.post('/search', auth, async (req, res) => {
+router.post('/search', async (req, res) => {
     try {
         const { query } = req.body;
         if (!query) return res.json({ results: [], answer: '' });
-
-        const allEntries = await DayEntry.find({ userId: req.user.userId }).sort({ date: 1 });
+        const allEntries = await DayEntry.find({}).sort({ date: 1 });
         if (allEntries.length === 0) return res.json({ results: [], answer: 'No diary entries found.' });
 
         const summaries = allEntries.map(e => {
@@ -97,12 +90,12 @@ router.post('/search', auth, async (req, res) => {
 });
 
 // POST /api/ai/chat
-router.post('/chat', auth, async (req, res) => {
+router.post('/chat', async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.json({ reply: 'Please ask me something.' });
 
-        const allEntries = await DayEntry.find({ userId: req.user.userId }).sort({ date: 1 });
+        const allEntries = await DayEntry.find({}).sort({ date: 1 });
         const today = new Date().toISOString().split('T')[0];
 
         const summaries = allEntries.map(e => {
@@ -118,7 +111,6 @@ router.post('/chat', auth, async (req, res) => {
         }));
         const catStr = Object.entries(catTotals).map(([k, v]) => `${k}: Rs.${v.toFixed(2)}`).join(', ');
 
-        // Build messages array with history for proper multi-turn chat
         const messages = [
             {
                 role: 'system',
@@ -150,13 +142,12 @@ Answer helpfully using actual data from the diary. For "last week" filter last 7
     }
 });
 
-// GET /api/ai/analytics?period=week|month
-router.get('/analytics', auth, async (req, res) => {
+// GET /api/ai/analytics
+router.get('/analytics', async (req, res) => {
     try {
         const { period } = req.query;
         const today = new Date();
         let startDate;
-
         if (period === 'week') {
             startDate = new Date(today);
             startDate.setDate(today.getDate() - 7);
@@ -167,10 +158,7 @@ router.get('/analytics', auth, async (req, res) => {
         const startStr = startDate.toISOString().split('T')[0];
         const todayStr = today.toISOString().split('T')[0];
 
-        const entries = await DayEntry.find({
-            userId: req.user.userId,
-            date: { $gte: startStr, $lte: todayStr }
-        }).sort({ date: 1 });
+        const entries = await DayEntry.find({ date: { $gte: startStr, $lte: todayStr } }).sort({ date: 1 });
 
         const categoryTotals = {};
         const dailyTotals = {};
