@@ -1,10 +1,10 @@
 const API_BASE = '/api';
 
 const getHeaders = () => {
-    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
     return {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        ...(userId ? { 'X-User-Id': userId } : {})
     };
 };
 
@@ -18,7 +18,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.msg || 'Registration failed');
-        return data; // { token, user }
+        return data; // { user }
     },
 
     login: async (username, password) => {
@@ -29,7 +29,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.msg || 'Login failed');
-        return data; // { token, user }
+        return data; // { user }
     },
 
     // Get entry for a specific date

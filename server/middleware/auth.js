@@ -1,20 +1,11 @@
-const jwt = require('jsonwebtoken');
-
+// Simple session middleware — no JWT, just pass userId from header
 module.exports = (req, res, next) => {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const userId = req.header('X-User-Id');
 
-    // Check if not token
-    if (!token) {
-        return res.status(401).json({ msg: 'No token, authorization denied' });
+    if (!userId) {
+        return res.status(401).json({ msg: 'Not authenticated' });
     }
 
-    // Verify token
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-        req.user = decoded;
-        next();
-    } catch (err) {
-        res.status(401).json({ msg: 'Token is not valid' });
-    }
+    req.user = { userId };
+    next();
 };

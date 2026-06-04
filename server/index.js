@@ -43,7 +43,7 @@ app.get('/api/days/:date', auth, async (req, res) => {
 app.post('/api/days', auth, async (req, res) => {
     try {
         const { date, notes, spentMoney, mode } = req.body;
-        console.log('Saving entry for date:', date, 'Mode:', mode, 'User:', req.user.userId); // Debug log
+        console.log('Saving entry for date:', date, 'Mode:', mode, 'User:', req.user.userId);
 
         let updateOperation;
 
