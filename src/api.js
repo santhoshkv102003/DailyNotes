@@ -69,5 +69,59 @@ export const api = {
         });
         if (!response.ok) throw new Error('Failed to fetch dates range');
         return response.json();
+    },
+
+    // AI: Auto-categorize an expense
+    categorize: async (description) => {
+        const response = await fetch(`${API_BASE}/ai/categorize`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ description })
+        });
+        if (!response.ok) return { category: 'Other' };
+        return response.json();
+    },
+
+    // AI: Fix grammar of notes
+    fixGrammar: async (text) => {
+        const response = await fetch(`${API_BASE}/ai/fix-grammar`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ text })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Grammar fix failed');
+        return data;
+    },
+
+    // AI: Natural language search
+    search: async (query) => {
+        const response = await fetch(`${API_BASE}/ai/search`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ query })
+        });
+        if (!response.ok) throw new Error('Search failed');
+        return response.json();
+    },
+
+    // AI: Chat
+    chat: async (message, history) => {
+        const response = await fetch(`${API_BASE}/ai/chat`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ message, history })
+        });
+        if (!response.ok) throw new Error('Chat failed');
+        return response.json();
+    },
+
+    // Analytics: category breakdown
+    analytics: async (period = 'month') => {
+        const response = await fetch(`${API_BASE}/ai/analytics?period=${period}`, {
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Analytics failed');
+        return response.json();
     }
 };

@@ -16,7 +16,11 @@ const dayEntrySchema = new mongoose.Schema({
     },
     spentMoney: [{
         description: String,
-        amount: Number
+        amount: Number,
+        category: {
+            type: String,
+            default: 'Other'
+        }
     }],
     lastModified: {
         type: Date,

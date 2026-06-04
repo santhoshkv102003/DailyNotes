@@ -1,24 +1,49 @@
 import React, { useState } from 'react';
+import { api } from '../api';
+
+const CATEGORY_COLORS = {
+    Food:          '#f97316',
+    Groceries:     '#22c55e',
+    Transport:     '#3b82f6',
+    Clothing:      '#a855f7',
+    Entertainment: '#ec4899',
+    Health:        '#ef4444',
+    Education:     '#06b6d4',
+    Utilities:     '#eab308',
+    Shopping:      '#f43f5e',
+    Travel:        '#14b8a6',
+    Other:         '#6b7280',
+};
 
 const SpentMoneySection = ({ spentList, onAddItem, onDeleteItem }) => {
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
+    const [categorizing, setCategorizing] = useState(false);
 
-    const handleAdd = () => {
+    const handleAdd = async () => {
         const amountNum = parseFloat(amount);
         if (!description || isNaN(amountNum) || amountNum <= 0) {
             alert('Please enter a valid description and amount');
             return;
         }
-        onAddItem({ description, amount: amountNum });
+
+        setCategorizing(true);
+        let category = 'Other';
+        try {
+            const result = await api.categorize(description);
+            category = result.category || 'Other';
+        } catch {
+            category = 'Other';
+        }
+        setCategorizing(false);
+
+        onAddItem({ description, amount: amountNum, category });
         setDescription('');
         setAmount('');
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            handleAdd();
-        }
+        if (e.key === 'Enter') handleAdd();
     };
 
     const total = spentList.reduce((sum, item) => sum + item.amount, 0);
@@ -42,20 +67,33 @@ const SpentMoneySection = ({ spentList, onAddItem, onDeleteItem }) => {
                     onChange={(e) => setDescription(e.target.value)}
                     onKeyPress={handleKeyPress}
                 />
-                <button onClick={handleAdd}>Add</button>
+                <button onClick={handleAdd} disabled={categorizing}>
+                    {categorizing ? '...' : 'Add'}
+                </button>
             </div>
 
             <div className="spent-list">
                 {spentList.map((item, index) => (
                     <div key={index} className="spent-item">
-                        <span className="spent-item-text">{item.description}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '3px' }}>
+                            <span className="spent-item-text">{item.description}</span>
+                            {item.category && (
+                                <span style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 600,
+                                    color: CATEGORY_COLORS[item.category] || '#6b7280',
+                                    background: `${CATEGORY_COLORS[item.category] || '#6b7280'}18`,
+                                    border: `1px solid ${CATEGORY_COLORS[item.category] || '#6b7280'}40`,
+                                    borderRadius: '10px',
+                                    padding: '1px 8px',
+                                    width: 'fit-content'
+                                }}>
+                                    {item.category}
+                                </span>
+                            )}
+                        </div>
                         <span className="spent-item-amount">₹{item.amount.toFixed(2)}</span>
-                        <button
-                            className="delete-item-btn"
-                            onClick={() => onDeleteItem(index)}
-                        >
-                            Delete
-                        </button>
+                        <button className="delete-item-btn" onClick={() => onDeleteItem(index)}>Delete</button>
                     </div>
                 ))}
             </div>

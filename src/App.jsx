@@ -4,6 +4,9 @@ import SpentMoneySection from './components/SpentMoneySection';
 import NotesSection from './components/NotesSection';
 import ActionButtons from './components/ActionButtons';
 import HistoryModal from './components/HistoryModal';
+import AnalyticsModal from './components/AnalyticsModal';
+import SearchModal from './components/SearchModal';
+import AIChatSidebar from './components/AIChatSidebar';
 import Login from './components/Login';
 import Register from './components/Register';
 import { api } from './api';
@@ -20,6 +23,11 @@ function AuthenticatedApp() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDate, setModalDate] = useState('');
   const [historyData, setHistoryData] = useState(null);
+
+  // AI Modals State
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
   // Helper to format date like "Wednesday, September 10, 2025"
   const getFormattedDate = (dateObj) => {
@@ -185,11 +193,6 @@ function AuthenticatedApp() {
 
   return (
     <div className="container">
-      <div className="welcome-bar">
-        <span>Welcome back, <strong>{user?.username}</strong></span>
-        <button onClick={logout} className="logout-btn">Logout</button>
-      </div>
-
       <Header date={currentDate} />
 
       <div className="main-content">
@@ -213,6 +216,11 @@ function AuthenticatedApp() {
         onSave={handleSave}
         onHistory={handleHistoryOpen}
         isSaved={isSaved}
+        onAnalytics={() => setIsAnalyticsOpen(true)}
+        onSearch={() => setIsSearchOpen(true)}
+        onAIChat={() => setIsAIChatOpen(true)}
+        onLogout={logout}
+        username={user?.username}
       />
       <HistoryModal
         isOpen={isModalOpen}
@@ -225,6 +233,21 @@ function AuthenticatedApp() {
         historyData={historyData}
         minDate={minDate}
         maxDate={maxDate}
+      />
+
+      <AnalyticsModal
+        isOpen={isAnalyticsOpen}
+        onClose={() => setIsAnalyticsOpen(false)}
+      />
+
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
+
+      <AIChatSidebar
+        isOpen={isAIChatOpen}
+        onClose={() => setIsAIChatOpen(false)}
       />
     </div>
   );

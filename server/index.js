@@ -6,6 +6,7 @@ const DayEntry = require('./models/DayEntry');
 
 const auth = require('./middleware/auth');
 const authRoutes = require('./routes/auth');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 // GET /api/days/:date - Fetch entry for a specific date
 app.get('/api/days/:date', auth, async (req, res) => {
