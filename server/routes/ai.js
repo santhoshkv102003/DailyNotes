@@ -181,4 +181,45 @@ router.get('/analytics', async (req, res) => {
     }
 });
 
+// GET /api/ai/analytics/category?period=week|month&category=Food
+router.get('/analytics/category', async (req, res) => {
+    try {
+        const { period, category } = req.query;
+        if (!category) return res.status(400).json({ error: 'category is required' });
+
+        const today = new Date();
+        let startDate;
+        if (period === 'week') {
+            startDate = new Date(today);
+            startDate.setDate(today.getDate() - 7);
+        } else {
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        }
+
+        const startStr = startDate.toISOString().split('T')[0];
+        const todayStr = today.toISOString().split('T')[0];
+
+        const entries = await DayEntry.find({ date: { $gte: startStr, $lte: todayStr } }).sort({ date: -1 });
+
+        // Collect all items matching the category, grouped by date
+        const byDate = [];
+        entries.forEach(e => {
+            const items = e.spentMoney.filter(s => (s.category || 'Other') === category);
+            if (items.length > 0) {
+                byDate.push({
+                    date: e.date,
+                    items: items.map(s => ({ description: s.description, amount: s.amount, createdAt: s.createdAt || null })),
+                    dayTotal: items.reduce((sum, s) => sum + s.amount, 0),
+                });
+            }
+        });
+
+        const total = byDate.reduce((sum, d) => sum + d.dayTotal, 0);
+        res.json({ category, byDate, total });
+    } catch (err) {
+        console.error('Category drill-down error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

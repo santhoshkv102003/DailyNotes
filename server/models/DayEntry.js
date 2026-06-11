@@ -16,6 +16,10 @@ const dayEntrySchema = new mongoose.Schema({
         category: {
             type: String,
             default: 'Other'
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
         }
     }],
     lastModified: {

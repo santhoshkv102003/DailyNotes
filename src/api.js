@@ -85,5 +85,12 @@ export const api = {
         const response = await fetch(`${API_BASE}/ai/analytics?period=${period}`);
         if (!response.ok) throw new Error('Analytics failed');
         return response.json();
+    },
+
+    // Analytics category drill-down
+    analyticsCategory: async (period = 'month', category) => {
+        const response = await fetch(`${API_BASE}/ai/analytics/category?period=${period}&category=${encodeURIComponent(category)}`);
+        if (!response.ok) throw new Error('Category analytics failed');
+        return response.json();
     }
 };

@@ -37,7 +37,7 @@ const SpentMoneySection = ({ spentList, onAddItem, onDeleteItem }) => {
         }
         setCategorizing(false);
 
-        onAddItem({ description, amount: amountNum, category });
+        onAddItem({ description, amount: amountNum, category, createdAt: new Date().toISOString() });
         setDescription('');
         setAmount('');
     };
@@ -77,20 +77,30 @@ const SpentMoneySection = ({ spentList, onAddItem, onDeleteItem }) => {
                     <div key={index} className="spent-item">
                         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '3px' }}>
                             <span className="spent-item-text">{item.description}</span>
-                            {item.category && (
-                                <span style={{
-                                    fontSize: '0.72rem',
-                                    fontWeight: 600,
-                                    color: CATEGORY_COLORS[item.category] || '#6b7280',
-                                    background: `${CATEGORY_COLORS[item.category] || '#6b7280'}18`,
-                                    border: `1px solid ${CATEGORY_COLORS[item.category] || '#6b7280'}40`,
-                                    borderRadius: '10px',
-                                    padding: '1px 8px',
-                                    width: 'fit-content'
-                                }}>
-                                    {item.category}
-                                </span>
-                            )}
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                                {item.category && (
+                                    <span style={{
+                                        fontSize: '0.72rem',
+                                        fontWeight: 600,
+                                        color: CATEGORY_COLORS[item.category] || '#6b7280',
+                                        background: `${CATEGORY_COLORS[item.category] || '#6b7280'}18`,
+                                        border: `1px solid ${CATEGORY_COLORS[item.category] || '#6b7280'}40`,
+                                        borderRadius: '10px',
+                                        padding: '1px 8px',
+                                        width: 'fit-content'
+                                    }}>
+                                        {item.category}
+                                    </span>
+                                )}
+                                {item.createdAt && (
+                                    <span style={{
+                                        fontSize: '0.7rem',
+                                        color: '#5a6080',
+                                    }}>
+                                        🕐 {new Date(item.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <span className="spent-item-amount">₹{item.amount.toFixed(2)}</span>
                         <button className="delete-item-btn" onClick={() => onDeleteItem(index)}>Delete</button>
