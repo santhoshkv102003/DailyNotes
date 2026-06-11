@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ActionButtons = ({ onSave, onHistory, isSaved, onAnalytics, onSearch, onAIChat }) => {
+const ActionButtons = ({ onSave, onHistory, isSaved, onAnalytics, onSearch, onAIChat, onGraph }) => {
     const [showSidePanel, setShowSidePanel] = useState(false);
 
     return (
@@ -29,6 +29,9 @@ const ActionButtons = ({ onSave, onHistory, isSaved, onAnalytics, onSearch, onAI
                     </button>
                     <button className="side-panel-btn analytics-side" onClick={onAnalytics}>
                         📊 Analytics
+                    </button>
+                    <button className="side-panel-btn graph-side" onClick={onGraph}>
+                        📈 Graph
                     </button>
                     <button className="side-panel-btn history-side" onClick={onHistory}>
                         📅 History

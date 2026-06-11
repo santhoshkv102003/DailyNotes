@@ -1177,6 +1177,16 @@ body {
     transform: translateX(4px);
 }
 
+.side-panel-btn.graph-side {
+    background: rgba(56, 217, 192, 0.10);
+    border: 1px solid rgba(56, 217, 192, 0.28);
+    color: #38d9c0;
+}
+.side-panel-btn.graph-side:hover {
+    background: rgba(56, 217, 192, 0.22);
+    transform: translateX(4px);
+}
+
 .side-panel-divider {
     flex: 1;
 }

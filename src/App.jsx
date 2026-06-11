@@ -7,6 +7,7 @@ import HistoryModal from './components/HistoryModal';
 import AnalyticsModal from './components/AnalyticsModal';
 import SearchModal from './components/SearchModal';
 import AIChatSidebar from './components/AIChatSidebar';
+import SpendingGraphModal from './components/SpendingGraphModal';
 import { api } from './api';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
 
   const getFormattedDate = (dateObj) => {
     return dateObj.toLocaleDateString('en-US', {
@@ -167,6 +169,7 @@ function App() {
         onAnalytics={() => setIsAnalyticsOpen(true)}
         onSearch={() => setIsSearchOpen(true)}
         onAIChat={() => setIsAIChatOpen(true)}
+        onGraph={() => setIsGraphOpen(true)}
       />
 
       <HistoryModal
@@ -184,6 +187,7 @@ function App() {
       <AnalyticsModal isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <AIChatSidebar isOpen={isAIChatOpen} onClose={() => setIsAIChatOpen(false)} />
+      <SpendingGraphModal isOpen={isGraphOpen} onClose={() => setIsGraphOpen(false)} />
     </div>
   );
 }
