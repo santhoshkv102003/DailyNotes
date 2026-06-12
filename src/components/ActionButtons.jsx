@@ -5,7 +5,7 @@ const ActionButtons = ({ onSave, onHistory, isSaved, isSaving, onAnalytics, onSe
 
     return (
         <>
-            {/* Main bottom bar — only Save button */}
+            {/* ── Bottom save bar ── */}
             <div className="buttons-section">
                 <button
                     className="save-btn"
@@ -17,7 +17,7 @@ const ActionButtons = ({ onSave, onHistory, isSaved, isSaving, onAnalytics, onSe
                 </button>
             </div>
 
-            {/* Left-edge hover trigger zone + sliding panel */}
+            {/* ── Desktop: left-edge hover panel ── */}
             <div
                 className="left-edge-trigger"
                 onMouseEnter={() => setShowSidePanel(true)}
@@ -40,10 +40,34 @@ const ActionButtons = ({ onSave, onHistory, isSaved, isSaving, onAnalytics, onSe
                 </div>
             </div>
 
-            {/* AI Chat floating button — bottom-right */}
+            {/* ── Desktop: AI Chat FAB ── */}
             <button className="ai-chat-fab" onClick={onAIChat} title="AI Chat">
                 ✦ AI Chat
             </button>
+
+            {/* ── Mobile: bottom navigation bar ── */}
+            <nav className="mobile-nav" aria-label="Main navigation">
+                <button className="mobile-nav-btn search" onClick={onSearch}>
+                    <span className="mnb-icon">🔍</span>
+                    <span className="mnb-label">Search</span>
+                </button>
+                <button className="mobile-nav-btn analytics" onClick={onAnalytics}>
+                    <span className="mnb-icon">📊</span>
+                    <span className="mnb-label">Analytics</span>
+                </button>
+                <button className="mobile-nav-btn graph" onClick={onGraph}>
+                    <span className="mnb-icon">📈</span>
+                    <span className="mnb-label">Graph</span>
+                </button>
+                <button className="mobile-nav-btn history" onClick={onHistory}>
+                    <span className="mnb-icon">📅</span>
+                    <span className="mnb-label">History</span>
+                </button>
+                <button className="mobile-nav-btn ai-chat" onClick={onAIChat}>
+                    <span className="mnb-icon">✦</span>
+                    <span className="mnb-label">AI Chat</span>
+                </button>
+            </nav>
         </>
     );
 };
