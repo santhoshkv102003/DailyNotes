@@ -20,6 +20,7 @@ app.use('/api/ai', aiRoutes);
 // ── Auth middleware ───────────────────────────────────────────
 const requireUser = (req, res, next) => {
     const userId = req.header('X-User-Id');
+    console.log(`[${req.method}] ${req.path} | X-User-Id: ${userId || 'MISSING'}`);
     if (!userId) return res.status(401).json({ error: 'Not authenticated' });
     req.userId = userId;
     next();
