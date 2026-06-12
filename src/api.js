@@ -1,11 +1,21 @@
 const API_BASE = '/api';
 
-const jsonHeaders = { 'Content-Type': 'application/json' };
+const getHeaders = (extra = {}) => {
+    const session = localStorage.getItem('dn_session');
+    const userId  = session ? JSON.parse(session).username : null;
+    return {
+        'Content-Type': 'application/json',
+        ...(userId ? { 'X-User-Id': userId } : {}),
+        ...extra,
+    };
+};
 
 export const api = {
     // Get entry for a specific date
     getDay: async (date) => {
-        const response = await fetch(`${API_BASE}/days/${date}`);
+        const response = await fetch(`${API_BASE}/days/${date}`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error('Failed to fetch data');
         return response.json();
     },
@@ -14,8 +24,8 @@ export const api = {
     saveDay: async (date, notes, spentMoney, mode = 'overwrite') => {
         const response = await fetch(`${API_BASE}/days`, {
             method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify({ date, notes, spentMoney, mode })
+            headers: getHeaders(),
+            body: JSON.stringify({ date, notes, spentMoney, mode }),
         });
         if (!response.ok) throw new Error('Failed to save data');
         return response.json();
@@ -23,35 +33,40 @@ export const api = {
 
     // Delete entry
     deleteDay: async (date) => {
-        const response = await fetch(`${API_BASE}/days/${date}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE}/days/${date}`, {
+            method: 'DELETE',
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error('Failed to delete data');
         return response.json();
     },
 
     // Get all dates
     getAllDates: async () => {
-        const response = await fetch(`${API_BASE}/days/range/all`);
+        const response = await fetch(`${API_BASE}/days/range/all`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error('Failed to fetch dates');
         return response.json();
     },
 
-    // AI: categorize expense
+    // AI: categorize expense (no auth needed)
     categorize: async (description) => {
         const response = await fetch(`${API_BASE}/ai/categorize`, {
             method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify({ description })
+            headers: getHeaders(),
+            body: JSON.stringify({ description }),
         });
         if (!response.ok) return { category: 'Other' };
         return response.json();
     },
 
-    // AI: fix grammar
+    // AI: fix grammar (no auth needed)
     fixGrammar: async (text) => {
         const response = await fetch(`${API_BASE}/ai/fix-grammar`, {
             method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify({ text })
+            headers: getHeaders(),
+            body: JSON.stringify({ text }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Grammar fix failed');
@@ -62,8 +77,8 @@ export const api = {
     search: async (query) => {
         const response = await fetch(`${API_BASE}/ai/search`, {
             method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify({ query })
+            headers: getHeaders(),
+            body: JSON.stringify({ query }),
         });
         if (!response.ok) throw new Error('Search failed');
         return response.json();
@@ -73,8 +88,8 @@ export const api = {
     chat: async (message, history) => {
         const response = await fetch(`${API_BASE}/ai/chat`, {
             method: 'POST',
-            headers: jsonHeaders,
-            body: JSON.stringify({ message, history })
+            headers: getHeaders(),
+            body: JSON.stringify({ message, history }),
         });
         if (!response.ok) throw new Error('Chat failed');
         return response.json();
@@ -82,15 +97,20 @@ export const api = {
 
     // Analytics
     analytics: async (period = 'month') => {
-        const response = await fetch(`${API_BASE}/ai/analytics?period=${period}`);
+        const response = await fetch(`${API_BASE}/ai/analytics?period=${period}`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error('Analytics failed');
         return response.json();
     },
 
     // Analytics category drill-down
     analyticsCategory: async (period = 'month', category) => {
-        const response = await fetch(`${API_BASE}/ai/analytics/category?period=${period}&category=${encodeURIComponent(category)}`);
+        const response = await fetch(
+            `${API_BASE}/ai/analytics/category?period=${period}&category=${encodeURIComponent(category)}`,
+            { headers: getHeaders() }
+        );
         if (!response.ok) throw new Error('Category analytics failed');
         return response.json();
-    }
+    },
 };

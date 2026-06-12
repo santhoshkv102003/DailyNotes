@@ -8,9 +8,14 @@ import AnalyticsModal from './components/AnalyticsModal';
 import SearchModal from './components/SearchModal';
 import AIChatSidebar from './components/AIChatSidebar';
 import SpendingGraphModal from './components/SpendingGraphModal';
+import Login from './components/Login';
+import Register from './components/Register';
+import { useAuth } from './context/AuthContext';
 import { api } from './api';
 
 function App() {
+  const { user, loading, logout } = useAuth();
+  const [authView, setAuthView] = useState('login'); // 'login' | 'register'
   const [currentDate, setCurrentDate] = useState('');
   const [spentList, setSpentList] = useState([]);
   const [notes, setNotes] = useState('');
@@ -147,8 +152,29 @@ function App() {
     if (isModalOpen && modalDate) loadHistoryDataForDate(modalDate);
   }, [modalDate, isModalOpen]);
 
+  // ── Auth gate ──────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+        <span>Loading…</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return authView === 'login'
+      ? <Login    onSwitch={() => setAuthView('register')} />
+      : <Register onSwitch={() => setAuthView('login')} />;
+  }
+  // ───────────────────────────────────────────────────────────
+
   return (
     <div className="container">
+      <div className="welcome-bar">
+        <span>Welcome, <strong>{user.username}</strong> 👋</span>
+        <button className="logout-btn" onClick={logout}>Logout</button>
+      </div>
       <Header date={currentDate} />
 
       <div className="main-content">

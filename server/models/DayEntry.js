@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 
 const dayEntrySchema = new mongoose.Schema({
-    date: {
-        type: String, // Format: YYYY-MM-DD
+    userId: {
+        type: String,   // username used as the user identifier
         required: true,
-        unique: true
+        index: true
+    },
+    date: {
+        type: String,   // Format: YYYY-MM-DD
+        required: true
     },
     notes: {
         type: String,
@@ -27,5 +31,8 @@ const dayEntrySchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+// Each user can only have one entry per date
+dayEntrySchema.index({ userId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('DayEntry', dayEntrySchema);

@@ -5,6 +5,14 @@ const DayEntry = require('../models/DayEntry');
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// ── Auth middleware ───────────────────────────────────────────
+const requireUser = (req, res, next) => {
+    const userId = req.header('X-User-Id');
+    if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+    req.userId = userId;
+    next();
+};
+
 const ask = async (prompt, systemPrompt = 'You are a helpful assistant.') => {
     const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
@@ -18,7 +26,7 @@ const ask = async (prompt, systemPrompt = 'You are a helpful assistant.') => {
     return completion.choices[0].message.content.trim();
 };
 
-// POST /api/ai/categorize
+// POST /api/ai/categorize  (no user data needed — no auth required)
 router.post('/categorize', async (req, res) => {
     try {
         const { description } = req.body;
@@ -36,7 +44,7 @@ router.post('/categorize', async (req, res) => {
     }
 });
 
-// POST /api/ai/fix-grammar
+// POST /api/ai/fix-grammar  (no user data needed)
 router.post('/fix-grammar', async (req, res) => {
     try {
         const { text } = req.body;
@@ -53,11 +61,12 @@ router.post('/fix-grammar', async (req, res) => {
 });
 
 // POST /api/ai/search
-router.post('/search', async (req, res) => {
+router.post('/search', requireUser, async (req, res) => {
     try {
         const { query } = req.body;
         if (!query) return res.json({ results: [], answer: '' });
-        const allEntries = await DayEntry.find({}).sort({ date: 1 });
+
+        const allEntries = await DayEntry.find({ userId: req.userId }).sort({ date: 1 });
         if (allEntries.length === 0) return res.json({ results: [], answer: 'No diary entries found.' });
 
         const summaries = allEntries.map(e => {
@@ -90,12 +99,12 @@ router.post('/search', async (req, res) => {
 });
 
 // POST /api/ai/chat
-router.post('/chat', async (req, res) => {
+router.post('/chat', requireUser, async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.json({ reply: 'Please ask me something.' });
 
-        const allEntries = await DayEntry.find({}).sort({ date: 1 });
+        const allEntries = await DayEntry.find({ userId: req.userId }).sort({ date: 1 });
         const today = new Date().toISOString().split('T')[0];
 
         const summaries = allEntries.map(e => {
@@ -143,7 +152,7 @@ Answer helpfully using actual data from the diary. For "last week" filter last 7
 });
 
 // GET /api/ai/analytics
-router.get('/analytics', async (req, res) => {
+router.get('/analytics', requireUser, async (req, res) => {
     try {
         const { period } = req.query;
         const today = new Date();
@@ -158,7 +167,10 @@ router.get('/analytics', async (req, res) => {
         const startStr = startDate.toISOString().split('T')[0];
         const todayStr = today.toISOString().split('T')[0];
 
-        const entries = await DayEntry.find({ date: { $gte: startStr, $lte: todayStr } }).sort({ date: 1 });
+        const entries = await DayEntry.find({
+            userId: req.userId,
+            date: { $gte: startStr, $lte: todayStr }
+        }).sort({ date: 1 });
 
         const categoryTotals = {};
         const dailyTotals = {};
@@ -181,8 +193,8 @@ router.get('/analytics', async (req, res) => {
     }
 });
 
-// GET /api/ai/analytics/category?period=week|month&category=Food
-router.get('/analytics/category', async (req, res) => {
+// GET /api/ai/analytics/category
+router.get('/analytics/category', requireUser, async (req, res) => {
     try {
         const { period, category } = req.query;
         if (!category) return res.status(400).json({ error: 'category is required' });
@@ -199,9 +211,11 @@ router.get('/analytics/category', async (req, res) => {
         const startStr = startDate.toISOString().split('T')[0];
         const todayStr = today.toISOString().split('T')[0];
 
-        const entries = await DayEntry.find({ date: { $gte: startStr, $lte: todayStr } }).sort({ date: -1 });
+        const entries = await DayEntry.find({
+            userId: req.userId,
+            date: { $gte: startStr, $lte: todayStr }
+        }).sort({ date: -1 });
 
-        // Collect all items matching the category, grouped by date
         const byDate = [];
         entries.forEach(e => {
             const items = e.spentMoney.filter(s => (s.category || 'Other') === category);

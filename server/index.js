@@ -17,11 +17,19 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/api/ai', aiRoutes);
 
+// ── Auth middleware — reads userId from header ────────────────
+const requireUser = (req, res, next) => {
+    const userId = req.header('X-User-Id');
+    if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+    req.userId = userId;
+    next();
+};
+
 // GET /api/days/:date
-app.get('/api/days/:date', async (req, res) => {
+app.get('/api/days/:date', requireUser, async (req, res) => {
     try {
         const { date } = req.params;
-        const entry = await DayEntry.findOne({ date });
+        const entry = await DayEntry.findOne({ userId: req.userId, date });
         if (!entry) return res.json({ notes: '', spentMoney: [] });
         res.json(entry);
     } catch (err) {
@@ -30,14 +38,16 @@ app.get('/api/days/:date', async (req, res) => {
 });
 
 // POST /api/days
-app.post('/api/days', async (req, res) => {
+app.post('/api/days', requireUser, async (req, res) => {
     try {
         const { date, notes, spentMoney, mode } = req.body;
+        const userId = req.userId;
+        const filter = { userId, date };
 
         let updateOperation;
 
         if (mode === 'append') {
-            const existingEntry = await DayEntry.findOne({ date });
+            const existingEntry = await DayEntry.findOne(filter);
             if (existingEntry) {
                 const newNotes = existingEntry.notes
                     ? (notes ? existingEntry.notes + '\n' + notes : existingEntry.notes)
@@ -45,31 +55,23 @@ app.post('/api/days', async (req, res) => {
                 const newSpentMoney = existingEntry.spentMoney.concat(spentMoney || []);
                 updateOperation = { $set: { notes: newNotes, spentMoney: newSpentMoney, lastModified: Date.now() } };
             } else {
-                updateOperation = { $set: { notes, spentMoney, lastModified: Date.now() } };
+                updateOperation = { $setOnInsert: { userId, date }, $set: { notes, spentMoney: spentMoney || [], lastModified: Date.now() } };
             }
         } else {
-            updateOperation = { $set: { notes, spentMoney, lastModified: Date.now() } };
+            updateOperation = { $setOnInsert: { userId, date }, $set: { notes, spentMoney: spentMoney || [], lastModified: Date.now() } };
         }
 
         let entry;
         try {
-            entry = await DayEntry.findOneAndUpdate(
-                { date },
-                updateOperation,
-                { new: true, upsert: true }
-            );
+            entry = await DayEntry.findOneAndUpdate(filter, updateOperation, { new: true, upsert: true });
         } catch (upsertErr) {
-            // Handle duplicate key race condition: retry as a regular update
             if (upsertErr.code === 11000) {
-                entry = await DayEntry.findOneAndUpdate(
-                    { date },
-                    updateOperation,
-                    { new: true }
-                );
+                entry = await DayEntry.findOneAndUpdate(filter, { $set: { notes, spentMoney: spentMoney || [], lastModified: Date.now() } }, { new: true });
             } else {
                 throw upsertErr;
             }
         }
+
         res.json(entry);
     } catch (err) {
         console.error('Error in POST /api/days:', err);
@@ -78,10 +80,10 @@ app.post('/api/days', async (req, res) => {
 });
 
 // DELETE /api/days/:date
-app.delete('/api/days/:date', async (req, res) => {
+app.delete('/api/days/:date', requireUser, async (req, res) => {
     try {
         const { date } = req.params;
-        await DayEntry.findOneAndDelete({ date });
+        await DayEntry.findOneAndDelete({ userId: req.userId, date });
         res.json({ message: 'Entry deleted' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -89,9 +91,9 @@ app.delete('/api/days/:date', async (req, res) => {
 });
 
 // GET /api/days/range/all
-app.get('/api/days/range/all', async (req, res) => {
+app.get('/api/days/range/all', requireUser, async (req, res) => {
     try {
-        const days = await DayEntry.find({}, 'date').sort({ date: 1 });
+        const days = await DayEntry.find({ userId: req.userId }, 'date').sort({ date: 1 });
         res.json(days.map(d => d.date));
     } catch (err) {
         res.status(500).json({ error: err.message });
