@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
+import { useCurrency } from '../hooks/useCurrency';
 
 const CATEGORY_COLORS = {
     Food:          '#f97316',
@@ -36,7 +37,7 @@ const fmtDate = (dateStr) => {
 };
 
 /* ── Drill-down panel ── */
-const DrillDown = ({ category, period, color, onBack }) => {
+const DrillDown = ({ category, period, color, onBack, currency }) => {
     const [data, setData]     = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -98,7 +99,7 @@ const DrillDown = ({ category, period, color, onBack }) => {
                         alignItems: 'center',
                     }}>
                         <span style={{ color: '#9ca3c4', fontSize: '0.85rem' }}>Total in period</span>
-                        <span style={{ color, fontWeight: 800, fontSize: '1.4rem' }}>₹{data.total.toFixed(2)}</span>
+                        <span style={{ color, fontWeight: 800, fontSize: '1.4rem' }}>{currency}{data.total.toFixed(2)}</span>
                     </div>
 
                     {data.byDate.length === 0 ? (
@@ -127,7 +128,7 @@ const DrillDown = ({ category, period, color, onBack }) => {
                                             📅 {fmtDate(day.date)}
                                         </span>
                                         <span style={{ color, fontWeight: 700, fontSize: '0.9rem' }}>
-                                            ₹{day.dayTotal.toFixed(2)}
+                                            {currency}{day.dayTotal.toFixed(2)}
                                         </span>
                                     </div>
 
@@ -161,7 +162,7 @@ const DrillDown = ({ category, period, color, onBack }) => {
                                                 </div>
                                             </div>
                                             <span style={{ color: '#38d9c0', fontWeight: 700, fontSize: '0.88rem', flexShrink: 0 }}>
-                                                ₹{item.amount.toFixed(2)}
+                                                {currency}{item.amount.toFixed(2)}
                                             </span>
                                         </div>
                                     ))}
@@ -186,7 +187,8 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
     const [period, setPeriod]           = useState('month');
     const [data, setData]               = useState(null);
     const [loading, setLoading]         = useState(false);
-    const [activeCategory, setActiveCategory] = useState(null); // drill-down state
+    const [activeCategory, setActiveCategory] = useState(null);
+    const currency = useCurrency();
 
     const loadAnalytics = async (p) => {
         setLoading(true);
@@ -232,6 +234,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                         period={period}
                         color={CATEGORY_COLORS[activeCategory] || '#6b7280'}
                         onBack={() => setActiveCategory(null)}
+                        currency={currency}
                     />
                 ) : (
                     <>
@@ -286,7 +289,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                                         Total spent {period === 'week' ? 'this week' : 'this month'}
                                     </span>
                                     <span style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent)' }}>
-                                        ₹{data.grandTotal.toFixed(2)}
+                                        {currency}{data.grandTotal.toFixed(2)}
                                     </span>
                                 </div>
 
@@ -345,7 +348,7 @@ const AnalyticsModal = ({ isOpen, onClose }) => {
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                             <span style={{ color, fontWeight: 700, fontSize: '0.95rem' }}>
-                                                                ₹{amount.toFixed(2)}
+                                                                {currency}{amount.toFixed(2)}
                                                             </span>
                                                             <span style={{ color: '#5a6080', fontSize: '0.8rem' }}>›</span>
                                                         </div>

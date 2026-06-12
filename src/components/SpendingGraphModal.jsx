@@ -10,9 +10,10 @@ import {
     ReferenceLine,
 } from 'recharts';
 import { api } from '../api';
+import { useCurrency } from '../hooks/useCurrency';
 
 /* ── Custom Tooltip ── */
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, currency }) => {
     if (!active || !payload || !payload.length) return null;
     return (
         <div style={{
@@ -26,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         }}>
             <p style={{ color: '#9ca3c4', marginBottom: 4 }}>{label}</p>
             <p style={{ color: '#38d9c0', fontWeight: 700 }}>
-                ₹{payload[0].value.toFixed(2)}
+                {currency}{payload[0].value.toFixed(2)}
             </p>
         </div>
     );
@@ -56,6 +57,7 @@ const SpendingGraphModal = ({ isOpen, onClose }) => {
     const [lastRefresh, setLastRefresh] = useState(null);
     const [yMax, setYMax]           = useState(3000);
     const [yInput, setYInput]       = useState('3000');
+    const currency = useCurrency();
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -184,7 +186,7 @@ const SpendingGraphModal = ({ isOpen, onClose }) => {
 
                 {/* Y-axis max customiser */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-                    <span style={{ color: '#9ca3c4', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>Y-axis max (₹):</span>
+                    <span style={{ color: '#9ca3c4', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>Y-axis max ({currency}):</span>
                     <input
                         type="number"
                         min={100}
@@ -244,9 +246,9 @@ const SpendingGraphModal = ({ isOpen, onClose }) => {
                 {/* Stats row */}
                 <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
                     {[
-                        { label: "Today's Spend", value: `₹${todayTotal.toFixed(2)}`, color: '#38d9c0' },
-                        { label: 'Daily Average',  value: `₹${avgTotal.toFixed(2)}`,   color: '#7c6af7' },
-                        { label: 'Highest Day',    value: `₹${maxTotal.toFixed(2)}`,   color: '#eab308' },
+                        { label: "Today's Spend", value: `${currency}${todayTotal.toFixed(2)}`, color: '#38d9c0' },
+                        { label: 'Daily Average',  value: `${currency}${avgTotal.toFixed(2)}`,   color: '#7c6af7' },
+                        { label: 'Highest Day',    value: `${currency}${maxTotal.toFixed(2)}`,   color: '#eab308' },
                     ].map(stat => (
                         <div key={stat.label} style={{
                             flex: '1 1 120px',
@@ -290,14 +292,14 @@ const SpendingGraphModal = ({ isOpen, onClose }) => {
                                 <YAxis
                                     domain={[0, yMax]}
                                     ticks={Array.from({ length: 6 }, (_, i) => Math.round((yMax / 5) * i))}
-                                    tickFormatter={v => `₹${v >= 1000 ? (v / 1000) + 'k' : v}`}
+                                    tickFormatter={v => `${currency}${v >= 1000 ? (v / 1000) + 'k' : v}`}
                                     tick={{ fill: '#9ca3c4', fontSize: 11 }}
                                     axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                                     tickLine={false}
                                     width={55}
                                 />
 
-                                <Tooltip content={<CustomTooltip />} />
+                                <Tooltip content={<CustomTooltip currency={currency} />} />
 
                                 {/* Average reference line */}
                                 {avgTotal > 0 && (

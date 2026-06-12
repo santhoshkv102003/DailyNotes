@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../api';
+import { useCurrency } from '../hooks/useCurrency';
 
 const CATEGORY_COLORS = {
     Food:          '#f97316',
@@ -19,6 +20,7 @@ const SpentMoneySection = ({ spentList, onAddItem, onDeleteItem }) => {
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [categorizing, setCategorizing] = useState(false);
+    const currency = useCurrency();
 
     const handleAdd = async () => {
         const amountNum = parseFloat(amount);
@@ -102,14 +104,14 @@ const SpentMoneySection = ({ spentList, onAddItem, onDeleteItem }) => {
                                 )}
                             </div>
                         </div>
-                        <span className="spent-item-amount">₹{item.amount.toFixed(2)}</span>
+                        <span className="spent-item-amount">{currency}{item.amount.toFixed(2)}</span>
                         <button className="delete-item-btn" onClick={() => onDeleteItem(index)}>Delete</button>
                     </div>
                 ))}
             </div>
 
             <div className="total-spent">
-                <strong>Total: ₹{total.toFixed(2)}</strong>
+                <strong>Total: {currency}{total.toFixed(2)}</strong>
             </div>
         </div>
     );

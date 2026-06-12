@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useCurrency } from '../hooks/useCurrency';
 
 const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, onDeleteItem, historyData, selectedDate, onDateChange, minDate, maxDate }) => {
     if (!isOpen) return null;
+
+    const currency = useCurrency();
 
 
 
@@ -122,12 +125,12 @@ const HistoryModal = ({ isOpen, onClose, onLoadHistory, onDeleteHistory, onDelet
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span><strong>{idx + 1}.</strong> {item.description}</span>
-                            <strong style={{ color: '#38d9c0' }}>₹{item.amount.toFixed(2)}</strong>
+                            <strong style={{ color: '#38d9c0' }}>{currency}{item.amount.toFixed(2)}</strong>
                         </div>
                     </div>
                 ))}
                 <div style={{ padding: '10px', marginTop: '10px', borderTop: '2px solid #7c6af7', color: '#38d9c0' }}>
-                    <strong>Total: ₹{total.toFixed(2)}</strong>
+                    <strong>Total: {currency}{total.toFixed(2)}</strong>
                 </div>
             </>
         );
