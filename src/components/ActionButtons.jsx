@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ActionButtons = ({ onSave, onHistory, isSaved, onAnalytics, onSearch, onAIChat, onGraph }) => {
+const ActionButtons = ({ onSave, onHistory, isSaved, isSaving, onAnalytics, onSearch, onAIChat, onGraph }) => {
     const [showSidePanel, setShowSidePanel] = useState(false);
 
     return (
@@ -10,9 +10,10 @@ const ActionButtons = ({ onSave, onHistory, isSaved, onAnalytics, onSearch, onAI
                 <button
                     className="save-btn"
                     onClick={onSave}
+                    disabled={isSaving}
                     style={isSaved ? { background: 'linear-gradient(135deg, #34d399, #2bbfa8)' } : {}}
                 >
-                    {isSaved ? '✓ Saved!' : 'SAVE'}
+                    {isSaving ? 'Saving...' : isSaved ? '✓ Saved!' : 'SAVE'}
                 </button>
             </div>
 

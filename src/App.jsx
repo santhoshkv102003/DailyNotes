@@ -15,6 +15,7 @@ function App() {
   const [spentList, setSpentList] = useState([]);
   const [notes, setNotes] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // History Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,6 +60,8 @@ function App() {
   };
 
   const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     const today = new Date();
     const key = getDateKey(today);
     try {
@@ -70,6 +73,8 @@ function App() {
     } catch (error) {
       console.error('Error saving data:', error);
       alert('Failed to save data!');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -166,6 +171,7 @@ function App() {
         onSave={handleSave}
         onHistory={handleHistoryOpen}
         isSaved={isSaved}
+        isSaving={isSaving}
         onAnalytics={() => setIsAnalyticsOpen(true)}
         onSearch={() => setIsSearchOpen(true)}
         onAIChat={() => setIsAIChatOpen(true)}

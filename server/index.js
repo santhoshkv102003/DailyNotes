@@ -51,11 +51,25 @@ app.post('/api/days', async (req, res) => {
             updateOperation = { $set: { notes, spentMoney, lastModified: Date.now() } };
         }
 
-        const entry = await DayEntry.findOneAndUpdate(
-            { date },
-            updateOperation,
-            { new: true, upsert: true }
-        );
+        let entry;
+        try {
+            entry = await DayEntry.findOneAndUpdate(
+                { date },
+                updateOperation,
+                { new: true, upsert: true }
+            );
+        } catch (upsertErr) {
+            // Handle duplicate key race condition: retry as a regular update
+            if (upsertErr.code === 11000) {
+                entry = await DayEntry.findOneAndUpdate(
+                    { date },
+                    updateOperation,
+                    { new: true }
+                );
+            } else {
+                throw upsertErr;
+            }
+        }
         res.json(entry);
     } catch (err) {
         console.error('Error in POST /api/days:', err);
