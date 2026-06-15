@@ -42,6 +42,12 @@
     box-sizing: border-box;
 }
 
+/* ── Prevent horizontal scroll globally ── */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
 /* ── Base ── */
 html {
     height: 100%;
@@ -72,6 +78,7 @@ body {
 /* ── Container ── */
 .container {
     width: 100%;
+    max-width: 100vw;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -79,6 +86,7 @@ body {
     border: none;
     border-radius: 0;
     box-shadow: none;
+    overflow-x: hidden;
     overflow-y: auto;
     min-height: 100vh;
 }
@@ -935,6 +943,7 @@ body {
 
     /* ── Hide desktop left-edge panel on mobile ── */
     .left-edge-trigger { display: none; }
+    .left-side-panel { display: none; }
 
     /* ── Mobile bottom nav bar ── */
     .mobile-nav { display: flex !important; }
